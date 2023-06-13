@@ -80,6 +80,15 @@ SubJet_tau4 = array("f", 4*[-9999.])
 Reco_matched_Y = array("i", [-1,-1])
 Reco_matched_YP = array("i", [-1,-1])
 Reco_M_jj = array("f", [-9999.])
+GenJet0_deltaR_Y = array("f", [-9999.])
+GenJet1_deltaR_Y = array("f", [-9999.])
+GenJet0_deltaR_YP = array("f", [-9999.])
+GenJet1_deltaR_YP = array("f", [-9999.])
+FatJet0_deltaR_Y = array("f", [-9999.])
+FatJet1_deltaR_Y = array("f", [-9999.])
+FatJet0_deltaR_YP = array("f", [-9999.])
+FatJet1_deltaR_YP = array("f", [-9999.])
+
 
 outTree.Branch("nV",nV,"nV/I")
 outTree.Branch("V_pt",V_pt,"V_pt[nV]/F")
@@ -125,6 +134,14 @@ outTree.Branch("SubJet_tau4",SubJet_tau4,"SubJet_tau4[nSubJet]/F")
 outTree.Branch("Reco_matched_Y",Reco_matched_Y,"Reco_matched_Y[2]/I")
 outTree.Branch("Reco_matched_YP",Reco_matched_YP,"Reco_matched_YP[2]/I")
 outTree.Branch("Reco_M_jj",Reco_M_jj,"Reco_M_jj/F")
+outTree.Branch("GenJet0_deltaR_Y",GenJet0_deltaR_Y,"GenJet0_deltaR_Y/F")
+outTree.Branch("GenJet1_deltaR_Y",GenJet1_deltaR_Y,"GenJet1_deltaR_Y/F")
+outTree.Branch("GenJet0_deltaR_YP",GenJet0_deltaR_YP,"GenJet0_deltaR_YP/F")
+outTree.Branch("GenJet1_deltaR_YP",GenJet1_deltaR_YP,"GenJet1_deltaR_YP/F")
+outTree.Branch("FatJet0_deltaR_Y",FatJet0_deltaR_Y,"FatJet0_deltaR_Y/F")
+outTree.Branch("FatJet1_deltaR_Y",FatJet1_deltaR_Y,"FatJet1_deltaR_Y/F")
+outTree.Branch("FatJet0_deltaR_YP",FatJet0_deltaR_YP,"FatJet0_deltaR_YP/F")
+outTree.Branch("FatJet1_deltaR_YP",FatJet1_deltaR_YP,"FatJet1_deltaR_YP/F")
 
 
 nevts=0
@@ -220,6 +237,11 @@ for ev in ttree:
     Gen_matched_Y[1] = (jets_vectors[1].DeltaR(Y_quarks_vectors[0]) < 0.6) and (jets_vectors[1].DeltaR(Y_quarks_vectors[1]) < 0.6)
     Gen_matched_YP[0] = (jets_vectors[0].DeltaR(YP_quarks_vectors[0]) < 0.6) and (jets_vectors[0].DeltaR(YP_quarks_vectors[1]) < 0.6)
     Gen_matched_YP[1] = (jets_vectors[1].DeltaR(YP_quarks_vectors[0]) < 0.6) and (jets_vectors[1].DeltaR(YP_quarks_vectors[1]) < 0.6)
+    GenJet0_deltaR_Y = [jets_vectors[0].DeltaR(Y_quarks_vectors[0]), jets_vectors[0].DeltaR(Y_quarks_vectors[1])]
+    GenJet1_deltaR_Y = [jets_vectors[1].DeltaR(Y_quarks_vectors[0]), jets_vectors[1].DeltaR(Y_quarks_vectors[1])]
+    GenJet0_deltaR_YP = [jets_vectors[0].DeltaR(YP_quarks_vectors[0]), jets_vectors[0].DeltaR(YP_quarks_vectors[1])]
+    GenJet1_deltaR_YP = [jets_vectors[1].DeltaR(YP_quarks_vectors[0]), jets_vectors[1].DeltaR(YP_quarks_vectors[1])]
+
 
     Gen_M_jj[0] = (jets_vectors[0] + jets_vectors[1]).M()
 
@@ -254,6 +276,10 @@ for ev in ttree:
     Reco_matched_Y[1] = (fatJet_vectors[1].DeltaR(Y_quarks_vectors[0]) < 0.6) and (fatJet_vectors[1].DeltaR(Y_quarks_vectors[1]) < 0.6)
     Reco_matched_YP[0] = (fatJet_vectors[0].DeltaR(YP_quarks_vectors[0]) < 0.6) and (fatJet_vectors[0].DeltaR(YP_quarks_vectors[1]) < 0.6)
     Reco_matched_YP[1] = (fatJet_vectors[1].DeltaR(YP_quarks_vectors[0]) < 0.6) and (fatJet_vectors[1].DeltaR(YP_quarks_vectors[1]) < 0.6)
+    FatJet0_deltaR_Y = [fatJet_vectors[0].DeltaR(Y_quarks_vectors[0]), fatJet_vectors[0].DeltaR(Y_quarks_vectors[1])]
+    FatJet1_deltaR_Y = [fatJet_vectors[1].DeltaR(Y_quarks_vectors[0]), fatJet_vectors[1].DeltaR(Y_quarks_vectors[1])]
+    FatJet0_deltaR_YP = [fatJet_vectors[0].DeltaR(YP_quarks_vectors[0]), fatJet_vectors[0].DeltaR(YP_quarks_vectors[1])]
+    FatJet1_deltaR_YP = [fatJet_vectors[1].DeltaR(YP_quarks_vectors[0]), fatJet_vectors[1].DeltaR(YP_quarks_vectors[1])]
 
     Reco_M_jj[0] = (fatJet_vectors[0] + fatJet_vectors[1]).M()
 
