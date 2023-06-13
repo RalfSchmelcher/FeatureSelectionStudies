@@ -3,6 +3,8 @@ from array import array
 import math
 date = datetime.date.today().isoformat()
 
+fname = 'RunIIAutumn18_all'
+
 def histStyle(hist,xtitle,color):
     markerstyle = 20 
     #hist.SetMarkerStyle(markerstyle)
@@ -52,9 +54,9 @@ sel_str_Reco_matching = "((Reco_matched_Y[0]==1 && Reco_matched_Y[1]==0) && (Rec
 sel_str_Reco_paper = "FatJet_pt[0]>200 && FatJet_pt[1]>200 && abs(FatJet_eta[0])<2.5 && abs(FatJet_eta[1])<2.5 && Reco_M_jj>1250 && FatJet_mass[0]>30 && FatJet_mass[1]>30"
 sel_str_Reco_matching_paper = "(" + sel_str_Reco_paper + ") && (" + sel_str_Reco_matching + ")"
 
-binsForX = array('f',[1000, 1500, 2000, 3000, 4000, 5000, 6000])
-binsForY = array('f',[ 30,  60,  90, 120, 150, 200, 250, 300, 400, 500])
-binsForYP =array('f',[ 30,  60,  90, 120, 150, 200, 250, 300, 400, 500])
+binsForX = array('f',[1000, 1500, 2000, 3000, 4000, 5000, 6000, 6500]) # +1 for last bin
+binsForY = array('f',[ 30,  60,  90, 120, 150, 200, 250, 300, 400, 500, 550]) # +1 for last bin
+binsForYP = array('f',[ 30,  60,  90, 120, 150, 200, 250, 300, 400, 500, 550]) # +1 for last bin
 
 
 def overlayshapes():
@@ -68,7 +70,7 @@ def overlayshapes():
 #
 #   change filename!
 #
-    f_ex0 = ROOT.TFile('RunIIAutumn18_all.root', 'READ'); l_ex0 = f_ex0.Get('tree')
+    f_ex0 = ROOT.TFile(f'{fname}.root', 'READ'); l_ex0 = f_ex0.Get('tree')
     # f_ex1 = ROOT.TFile('/afs/cern.ch/work/a/anmehta/work/SL6_setup/CMSSW_5_3_20/src/TestPAT/MPIwithWW/lhetools/LatinoTreesLHE/WpmWmp_LL_genlevel.root', 'READ'); l_ex1 = f_ex1.Get('tree')
     # f_ex2 = ROOT.TFile('/afs/cern.ch/work/a/anmehta/work/SL6_setup/CMSSW_5_3_20/src/TestPAT/MPIwithWW/lhetools/LatinoTreesLHE/WpmWmp_TLnLT_genlevel.root', 'READ'); l_ex2 = f_ex2.Get('tree')
     
@@ -189,7 +191,7 @@ def overlay2dshapes():
     if outdir not in os.listdir(basedir):
         os.system('mkdir -p {od}'.format(od=outdir))
 
-    f_ex0 = ROOT.TFile('RunIIAutumn18_debug.root', 'READ'); l_ex0 = f_ex0.Get('tree')
+    f_ex0 = ROOT.TFile(f'{fname}.root', 'READ'); l_ex0 = f_ex0.Get('tree')
     # f_ex1 = ROOT.TFile('/afs/cern.ch/work/a/anmehta/work/SL6_setup/CMSSW_5_3_20/src/TestPAT/MPIwithWW/lhetools/LatinoTreesLHE/WpmWmp_LL_genlevel.root', 'READ'); l_ex1 = f_ex1.Get('tree')
     # f_ex2 = ROOT.TFile('/afs/cern.ch/work/a/anmehta/work/SL6_setup/CMSSW_5_3_20/src/TestPAT/MPIwithWW/lhetools/LatinoTreesLHE/WpmWmp_TLnLT_genlevel.root', 'READ'); l_ex2 = f_ex2.Get('tree')
     pdraw2d = {
@@ -216,7 +218,7 @@ def overlay2dshapes():
         # # "Gen_M_jj_vs_M_jY" : ["Gen_M_jj", "GenJetAK8_mass", "Gen_M_jj", "M_jY", 50, 50, 0, 0, 6500, 1000, "((Gen_matched_Y[0]==1 && Gen_matched_Y[1]==0) && (Gen_matched_YP[0]==0 && Gen_matched_YP[1]==1)) || ((Gen_matched_Y[1]==1 && Gen_matched_Y[0]==0) && (Gen_matched_YP[1]==0 && Gen_matched_YP[0]==1))"],
         # # "Gen_M_jj_vs_M_jYP" : ["Gen_M_jj", "GenJetAK8_mass", "Gen_M_jj", "M_jYP", 50, 50, 0, 0, 6500, 1000, "((Gen_matched_YP[0]==1 && Gen_matched_YP[1]==0) && (Gen_matched_Y[0]==0 && Gen_matched_Y[1]==1)) || ((Gen_matched_YP[1]==1 && Gen_matched_YP[0]==0) && (Gen_matched_Y[1]==0 && Gen_matched_Y[0]==1))"],
 
-        "Reco_M_jj_vs_M_YP_delta_R_high" : ["Reco_M_jj", "M_YP", "Reco_M_jj", "M_YP", 50, 50, 0, 0, 6500, 500, "delta_R_qq_YP25>=0.8 && V_pdgId==25",binsForX,binsForYP],
+        # "Reco_M_jj_vs_M_YP_delta_R_high" : ["Reco_M_jj", "M_YP", "Reco_M_jj", "M_YP", 50, 50, 0, 0, 6500, 500, "delta_R_qq_YP25>=0.8 && V_pdgId==25",binsForX,binsForYP],
         }
 
     for ikey,ival in pdraw2d.items():
@@ -238,7 +240,7 @@ def overlay2dshapes():
         #h_ex0.GetXaxis().SetRangeUser(-2.5,2.5)
         #h_ex0.GetYaxis().SetNdivisions(505)
         #h_ex0.GetXaxis().SetNdivisions(510)
-        h_ex0.GetYaxis().SetTitleOffset(1.2)
+        h_ex0.GetYaxis().SetTitleOffset(1.0)
         h_ex0.GetXaxis().SetTitleOffset(1.0)
         h_ex0.GetYaxis().SetTitleSize(0.045)
         h_ex0.GetXaxis().SetTitleSize(0.045)
@@ -269,8 +271,6 @@ def overlay2dshapes():
 
 
 
-
-
 def overlayshapesSpecial():
     outdir='genplots'
 
@@ -279,20 +279,26 @@ def overlayshapesSpecial():
     if outdir not in os.listdir(basedir):
         os.system('mkdir -p {od}'.format(od=outdir))
 
-    f_ex0 = ROOT.TFile('RunIIAutumn18_debug.root', 'READ'); l_ex0 = f_ex0.Get('tree')
+    f_ex0 = ROOT.TFile(f'{fname}.root', 'READ'); l_ex0 = f_ex0.Get('tree')
 
 
 
 
     # special plot
 
-    # "Gen_M_X_vs_M_Y" : ["M_X", "M_Y", "M_X", "M_Y", 50, 50, 0, 0, 6500, 500, "",binsForX,binsForY],
-
-
     # List of histograms to draw
     #         [[hist,title,subtitle/sel,drawArg], ...]
     s_hists = []
 
+    s_hist_sel_M_Y = get2dhist(l_ex0, sel_str_Gen_matching_paper, "M_X", "M_Y", "M_X", "M_Y", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
+    s_hist_M_Y = get2dhist(l_ex0, "","M_X", "M_Y", "M_X", "M_Y", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
+    s_hist_sel_M_Y.Divide(s_hist_M_Y)
+    s_hists.append([s_hist_sel_M_Y,'M_sel_div_M__Y','','colz'])
+
+    s_hist_sel_M_YP = get2dhist(l_ex0, sel_str_Gen_matching_paper, "M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
+    s_hist_M_YP = get2dhist(l_ex0, "","M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
+    s_hist_sel_M_YP.Divide(s_hist_M_YP)
+    s_hists.append([s_hist_sel_M_YP,'M_sel_div_M__YP','','colz'])  
 
 
     s_hist_Gen_M_jj = gethist(l_ex0,sel_str_Gen_matching_paper,"Gen_M_jj","",326,0,7000,ROOT.kGreen+2)
@@ -309,8 +315,10 @@ def overlayshapesSpecial():
     s_hists.append([s_hist_Gen_M_j0YP,'Gen_M_jYP','','hist'])
 
 
-    s_hist1 = get2dhist(l_ex0, f"{sel_str_Gen_matching_paper} && ((Gen_matched_Y[Iteration$]==1) && (Gen_matched_YP[abs(Iteration$-1)]==1))", "Gen_M_jj", "GenJetAK8_mass", "Gen_M_jj", "GenJetAK8_mass", 326,100,0,0,7000,1000, [], [])
-    s_hist2 = get2dhist(l_ex0, "((Gen_matched_Y[Iteration$]==1) && (Gen_matched_YP[abs(Iteration$-1)]==1))","Gen_M_jj", "GenJetAK8_mass", "Gen_M_jj", "GenJetAK8_mass", 100,100,0,0,1000,1000, [], [])
+    s_hist_Gen_sel_M_Y = get2dhist(l_ex0, f"{sel_str_Gen_matching_paper} && ((Gen_matched_Y[Iteration$]==1) && (Gen_matched_YP[abs(Iteration$-1)]==1))", "Gen_M_jj", "GenJetAK8_mass", "Gen_M_jj", "GenJetAK8_mass", 326,100,0,0,7000,1000, [], [])
+    s_hist_Gen_M_Y = get2dhist(l_ex0, "((Gen_matched_Y[Iteration$]==1) && (Gen_matched_YP[abs(Iteration$-1)]==1))","Gen_M_jj", "GenJetAK8_mass", "Gen_M_jj", "GenJetAK8_mass", 326,100,0,0,7000,1000, [], [])
+    s_hist_Gen_sel_M_YP = get2dhist(l_ex0, f"{sel_str_Gen_matching_paper} && ((Gen_matched_YP[Iteration$]==1) && (Gen_matched_Y[abs(Iteration$-1)]==1))", "Gen_M_jj", "GenJetAK8_mass", "Gen_M_jj", "GenJetAK8_mass", 326,100,0,0,7000,1000, [], [])
+    s_hist_Gen_M_YP = get2dhist(l_ex0, "((Gen_matched_YP[Iteration$]==1) && (Gen_matched_Y[abs(Iteration$-1)]==1))","Gen_M_jj", "GenJetAK8_mass", "Gen_M_jj", "GenJetAK8_mass", 326,100,0,0,7000,1000, [], [])
 
     s_hist_Gen_Mjj_vs_MjY = ROOT.TH2F("hist2d" ,'',326,0,7000,100,0,1000)
     for bin_x in range(1, s_hist_Gen_M_jj.GetNbinsX() + 1):
@@ -336,17 +344,59 @@ def overlayshapesSpecial():
     s_hist_Gen_Mjj_vs_MjY_sel.GetYaxis().SetTitle("Gen_M_jY")
     s_hists.append([s_hist_Gen_Mjj_vs_MjY_sel, 'Gen_Mjj_vs_MjY_sel', 'matching & VV/VH paper', 'colz'])
 
-    s_hist1.Divide(s_hist2)
-    s_hists.append([s_hist1,'Gen_M_sel_div_M__Y','','colz'])
+    s_hist_Gen_Mjj_vs_MjYP = ROOT.TH2F("hist2d" ,'',326,0,7000,100,0,1000)
+    for bin_x in range(1, s_hist_Gen_M_jj.GetNbinsX() + 1):
+        for bin_y in range(1, s_hist_Gen_M_j0YP.GetNbinsX() + 1):
+            content_x = s_hist_Gen_M_jj.GetBinContent(bin_x)
+            content_y = s_hist_Gen_M_j0YP.GetBinContent(bin_y)
+            bin_center_x = s_hist_Gen_M_jj.GetXaxis().GetBinCenter(bin_x)
+            bin_center_y = s_hist_Gen_M_j0YP.GetXaxis().GetBinCenter(bin_y)
+            s_hist_Gen_Mjj_vs_MjYP.Fill(bin_center_x, bin_center_y, content_x * content_y)
+    s_hist_Gen_Mjj_vs_MjYP.GetXaxis().SetTitle("Gen_M_jj")
+    s_hist_Gen_Mjj_vs_MjYP.GetYaxis().SetTitle("Gen_M_jYP")
+    s_hists.append([s_hist_Gen_Mjj_vs_MjYP, 'Gen_Mjj_vs_MjYP', 'no selection', 'colz'])
 
-    s_hist2 = get2dhist(l_ex0, sel_str_Gen_matching_paper, "M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForYP)
-    s_hist3 = get2dhist(l_ex0, "","M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForYP)
-    s_hist2.Divide(s_hist3)
-    s_hists.append([s_hist2,'Gen_M_sel_div_M__YP','','colz'])
+    s_hist_Gen_Mjj_vs_MjYP_sel = ROOT.TH2F("hist2d" ,'',326,0,7000,100,0,1000)
+    for bin_x in range(1, s_hist_Gen_M_jj_sel.GetNbinsX() + 1):
+        for bin_y in range(1, s_hist_Gen_M_j0YP.GetNbinsX() + 1):
+            content_x = s_hist_Gen_M_jj_sel.GetBinContent(bin_x)
+            content_y = s_hist_Gen_M_j0YP.GetBinContent(bin_y)
+            bin_center_x = s_hist_Gen_M_jj_sel.GetXaxis().GetBinCenter(bin_x)
+            bin_center_y = s_hist_Gen_M_j0YP.GetXaxis().GetBinCenter(bin_y)
+            s_hist_Gen_Mjj_vs_MjYP_sel.Fill(bin_center_x, bin_center_y, content_x * content_y)
+    s_hist_Gen_Mjj_vs_MjYP_sel.GetXaxis().SetTitle("Gen_M_jj")
+    s_hist_Gen_Mjj_vs_MjYP_sel.GetYaxis().SetTitle("Gen_M_jYP")
+    s_hists.append([s_hist_Gen_Mjj_vs_MjYP_sel, 'Gen_Mjj_vs_MjYP_sel', 'matching & VV/VH paper', 'colz'])
+
+    s_hist_Gen_sel_M_Y.Divide(s_hist_Gen_M_Y)
+    s_hists.append([s_hist_Gen_sel_M_Y,'Gen_M_sel_div_M__Y','','colz'])
+
+    s_hist_Gen_sel_M_YP.Divide(s_hist_Gen_M_YP)
+    s_hists.append([s_hist_Gen_sel_M_YP,'Gen_M_sel_div_M__YP','','colz'])
 
 
-    # tree.Draw('{here}>>hist1'.format(here=vname), selcuts, 'goff')
+    # s_hist_Reco_M_j0Y = gethist(l_ex0,"((Reco_matched_Y[0]==1 && Reco_matched_Y[1]==0) && (Reco_matched_YP[0]==0 && Reco_matched_YP[1]==1))","FatJet_mass[0]","Reco_M_jY",100,0,1000,ROOT.kGreen+2)
+    # s_hist_Reco_M_j1Y = gethist(l_ex0,"((Reco_matched_YP[0]==1 && Reco_matched_YP[1]==0) && (Reco_matched_Y[0]==0 && Reco_matched_Y[1]==1))","FatJet_mass[1]","Reco_M_j1Y",100,0,1000,ROOT.kGreen+2)
+    # s_hist_Reco_M_j0Y.Add(s_hist_Reco_M_j1Y)
+    # s_hists.append([s_hist_Reco_M_j0Y,'Reco_M_jY','','hist'])
+    
+    # s_hist_Reco_M_j0YP = gethist(l_ex0,"((Reco_matched_YP[0]==1 && Reco_matched_YP[1]==0) && (Reco_matched_Y[0]==0 && Reco_matched_Y[1]==1))","FatJet_mass[0]","Reco_M_jYP",100,0,1000,ROOT.kGreen+2)
+    # s_hist_Reco_M_j1YP = gethist(l_ex0,"((Reco_matched_Y[0]==1 && Reco_matched_Y[1]==0) && (Reco_matched_YP[0]==0 && Reco_matched_YP[1]==1))","FatJet_mass[1]","Reco_M_j1YP",100,0,1000,ROOT.kGreen+2)
+    # s_hist_Reco_M_j0YP.Add(s_hist_Reco_M_j1YP)
+    # s_hists.append([s_hist_Reco_M_j0YP,'Reco_M_jYP','','hist'])
 
+
+    # s_hist3 = get2dhist(l_ex0, sel_str_Reco_matching_paper, "M_X", "M_Y", "M_X", "M_Y", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
+    # s_hist4 = get2dhist(l_ex0, "","M_X", "M_Y", "M_X", "M_Y", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
+    # s_hist3.Divide(s_hist4)
+    # s_hists.append([s_hist3,'Reco_M_sel_div_M__Y','','colz'])
+
+    # s_hist4 = get2dhist(l_ex0, sel_str_Reco_matching_paper, "M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
+    # s_hist5 = get2dhist(l_ex0, "","M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
+    # s_hist4.Divide(s_hist5)
+    # s_hists.append([s_hist4,'Reco_M_sel_div_M__YP','','colz'])  
+    s_hist_Reco_M_jj = gethist(l_ex0,sel_str_Reco_matching_paper,"Reco_M_jj","",326,0,7000,ROOT.kGreen+2)
+    s_hist_Reco_M_jj_sel = gethist(l_ex0,sel_str_Reco_matching_paper,"Reco_M_jj","Reco_M_jj_match_paper",326,0,7000,ROOT.kGreen+2)
 
     s_hist_Reco_M_j0Y = gethist(l_ex0,"((Reco_matched_Y[0]==1 && Reco_matched_Y[1]==0) && (Reco_matched_YP[0]==0 && Reco_matched_YP[1]==1))","FatJet_mass[0]","Reco_M_jY",100,0,1000,ROOT.kGreen+2)
     s_hist_Reco_M_j1Y = gethist(l_ex0,"((Reco_matched_YP[0]==1 && Reco_matched_YP[1]==0) && (Reco_matched_Y[0]==0 && Reco_matched_Y[1]==1))","FatJet_mass[1]","Reco_M_j1Y",100,0,1000,ROOT.kGreen+2)
@@ -359,15 +409,65 @@ def overlayshapesSpecial():
     s_hists.append([s_hist_Reco_M_j0YP,'Reco_M_jYP','','hist'])
 
 
-    s_hist3 = get2dhist(l_ex0, sel_str_Reco_matching_paper, "M_X", "M_Y", "M_X", "M_Y", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
-    s_hist4 = get2dhist(l_ex0, "","M_X", "M_Y", "M_X", "M_Y", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
-    s_hist3.Divide(s_hist4)
-    s_hists.append([s_hist3,'Reco_M_sel_div_M__Y','','colz'])
+    s_hist_Reco_sel_M_Y = get2dhist(l_ex0, f"{sel_str_Reco_matching_paper} && ((Reco_matched_Y[Iteration$]==1) && (Reco_matched_YP[abs(Iteration$-1)]==1))", "Reco_M_jj", "FatJet_mass", "Reco_M_jj", "FatJet_mass", 326,100,0,0,7000,1000, [], [])
+    s_hist_Reco_M_Y = get2dhist(l_ex0, "((Reco_matched_Y[Iteration$]==1) && (Reco_matched_YP[abs(Iteration$-1)]==1))","Reco_M_jj", "FatJet_mass", "Reco_M_jj", "FatJet_mass", 326,100,0,0,7000,1000, [], [])
+    s_hist_Reco_sel_M_YP = get2dhist(l_ex0, f"{sel_str_Reco_matching_paper} && ((Reco_matched_YP[Iteration$]==1) && (Reco_matched_Y[abs(Iteration$-1)]==1))", "Reco_M_jj", "FatJet_mass", "Reco_M_jj", "FatJet_mass", 326,100,0,0,7000,1000, [], [])
+    s_hist_Reco_M_YP = get2dhist(l_ex0, "((Reco_matched_YP[Iteration$]==1) && (Reco_matched_Y[abs(Iteration$-1)]==1))","Reco_M_jj", "FatJet_mass", "Reco_M_jj", "FatJet_mass", 326,100,0,0,7000,1000, [], [])
 
-    s_hist4 = get2dhist(l_ex0, sel_str_Reco_matching_paper, "M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
-    s_hist5 = get2dhist(l_ex0, "","M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
-    s_hist4.Divide(s_hist5)
-    s_hists.append([s_hist4,'Reco_M_sel_div_M__YP','','colz'])  
+    s_hist_Reco_Mjj_vs_MjY = ROOT.TH2F("hist2d" ,'',326,0,7000,100,0,1000)
+    for bin_x in range(1, s_hist_Reco_M_jj.GetNbinsX() + 1):
+        for bin_y in range(1, s_hist_Reco_M_j0Y.GetNbinsX() + 1):
+            content_x = s_hist_Reco_M_jj.GetBinContent(bin_x)
+            content_y = s_hist_Reco_M_j0Y.GetBinContent(bin_y)
+            bin_center_x = s_hist_Reco_M_jj.GetXaxis().GetBinCenter(bin_x)
+            bin_center_y = s_hist_Reco_M_j0Y.GetXaxis().GetBinCenter(bin_y)
+            s_hist_Reco_Mjj_vs_MjY.Fill(bin_center_x, bin_center_y, content_x * content_y)
+    s_hist_Reco_Mjj_vs_MjY.GetXaxis().SetTitle("Reco_M_jj")
+    s_hist_Reco_Mjj_vs_MjY.GetYaxis().SetTitle("Reco_M_jY")
+    s_hists.append([s_hist_Reco_Mjj_vs_MjY, 'Reco_Mjj_vs_MjY', 'no selection', 'colz'])
+
+    s_hist_Reco_Mjj_vs_MjY_sel = ROOT.TH2F("hist2d" ,'',326,0,7000,100,0,1000)
+    for bin_x in range(1, s_hist_Reco_M_jj_sel.GetNbinsX() + 1):
+        for bin_y in range(1, s_hist_Reco_M_j0Y.GetNbinsX() + 1):
+            content_x = s_hist_Reco_M_jj_sel.GetBinContent(bin_x)
+            content_y = s_hist_Reco_M_j0Y.GetBinContent(bin_y)
+            bin_center_x = s_hist_Reco_M_jj_sel.GetXaxis().GetBinCenter(bin_x)
+            bin_center_y = s_hist_Reco_M_j0Y.GetXaxis().GetBinCenter(bin_y)
+            s_hist_Reco_Mjj_vs_MjY_sel.Fill(bin_center_x, bin_center_y, content_x * content_y)
+    s_hist_Reco_Mjj_vs_MjY_sel.GetXaxis().SetTitle("Reco_M_jj")
+    s_hist_Reco_Mjj_vs_MjY_sel.GetYaxis().SetTitle("Reco_M_jY")
+    s_hists.append([s_hist_Reco_Mjj_vs_MjY_sel, 'Reco_Mjj_vs_MjY_sel', 'matching & VV/VH paper', 'colz'])
+
+    s_hist_Reco_Mjj_vs_MjYP = ROOT.TH2F("hist2d" ,'',326,0,7000,100,0,1000)
+    for bin_x in range(1, s_hist_Reco_M_jj.GetNbinsX() + 1):
+        for bin_y in range(1, s_hist_Reco_M_j0YP.GetNbinsX() + 1):
+            content_x = s_hist_Reco_M_jj.GetBinContent(bin_x)
+            content_y = s_hist_Reco_M_j0YP.GetBinContent(bin_y)
+            bin_center_x = s_hist_Reco_M_jj.GetXaxis().GetBinCenter(bin_x)
+            bin_center_y = s_hist_Reco_M_j0YP.GetXaxis().GetBinCenter(bin_y)
+            s_hist_Reco_Mjj_vs_MjYP.Fill(bin_center_x, bin_center_y, content_x * content_y)
+    s_hist_Reco_Mjj_vs_MjYP.GetXaxis().SetTitle("Reco_M_jj")
+    s_hist_Reco_Mjj_vs_MjYP.GetYaxis().SetTitle("Reco_M_jYP")
+    s_hists.append([s_hist_Reco_Mjj_vs_MjYP, 'Reco_Mjj_vs_MjYP', 'no selection', 'colz'])
+
+    s_hist_Reco_Mjj_vs_MjYP_sel = ROOT.TH2F("hist2d" ,'',326,0,7000,100,0,1000)
+    for bin_x in range(1, s_hist_Reco_M_jj_sel.GetNbinsX() + 1):
+        for bin_y in range(1, s_hist_Reco_M_j0YP.GetNbinsX() + 1):
+            content_x = s_hist_Reco_M_jj_sel.GetBinContent(bin_x)
+            content_y = s_hist_Reco_M_j0YP.GetBinContent(bin_y)
+            bin_center_x = s_hist_Reco_M_jj_sel.GetXaxis().GetBinCenter(bin_x)
+            bin_center_y = s_hist_Reco_M_j0YP.GetXaxis().GetBinCenter(bin_y)
+            s_hist_Reco_Mjj_vs_MjYP_sel.Fill(bin_center_x, bin_center_y, content_x * content_y)
+    s_hist_Reco_Mjj_vs_MjYP_sel.GetXaxis().SetTitle("Reco_M_jj")
+    s_hist_Reco_Mjj_vs_MjYP_sel.GetYaxis().SetTitle("Reco_M_jYP")
+    s_hists.append([s_hist_Reco_Mjj_vs_MjYP_sel, 'Reco_Mjj_vs_MjYP_sel', 'matching & VV/VH paper', 'colz'])
+
+    s_hist_Reco_sel_M_Y.Divide(s_hist_Reco_M_Y)
+    s_hists.append([s_hist_Reco_sel_M_Y,'Reco_M_sel_div_M__Y','','colz'])
+
+    s_hist_Reco_sel_M_YP.Divide(s_hist_Reco_M_YP)
+    s_hists.append([s_hist_Reco_sel_M_YP,'Reco_M_sel_div_M__YP','','colz'])
+
 
 
 
@@ -377,10 +477,6 @@ def overlayshapesSpecial():
         ROOT.gStyle.SetOptStat(0)
         canv = ROOT.TCanvas(s_hist[1], 'bar', 600, 600)
         canv.cd()
-        # s_hist1.GetYaxis().SetTitleOffset(1.2)
-        # s_hist1.GetXaxis().SetTitleOffset(1.0)
-        # s_hist1.GetYaxis().SetTitleSize(0.045)
-        # s_hist1.GetXaxis().SetTitleSize(0.045)
         s_hist[0].Draw(s_hist[3])
         leg = ROOT.TLegend(0.5, 0.65, 0.8, 0.875)
         leg.SetTextSize(0.045); leg.SetShadowColor(0);        leg.SetFillStyle(0)
@@ -389,6 +485,10 @@ def overlayshapesSpecial():
         leg.AddEntry('NULL', s_hist[2],'')
         leg.SetLineColor(ROOT.kWhite)
         leg.SetFillColor(ROOT.kWhite)
+        s_hist[0].GetYaxis().SetTitleOffset(1.0)
+        s_hist[0].GetXaxis().SetTitleOffset(1.0)
+        s_hist[0].GetYaxis().SetTitleSize(0.045)
+        s_hist[0].GetXaxis().SetTitleSize(0.045)
         leg.Draw('same')
 
         lat = ROOT.TLatex()
@@ -396,98 +496,6 @@ def overlayshapesSpecial():
         #fout.WriteTObject(canv)
         canv.SaveAs('{od}/{title}.pdf'.format(od=outdir,title=s_hist[1]))
         canv.SaveAs('{od}/{title}.png'.format(od=outdir,title=s_hist[1]))
-
-    # "Gen_M_X_vs_M_YP" : ["M_X", "M_YP", "M_X", "M_YP", 50, 50, 0, 0, 6500, 500, "",binsForX,binsForY],
-    # s_hist1 = get2dhist(l_ex0, sel_str_Gen_matching_paper, "M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForYP)
-    # s_hist2 = get2dhist(l_ex0, "","M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForYP)
-    # s_hist1.Divide(s_hist2)
-
-    # ROOT.gROOT.SetBatch()
-    # ROOT.gStyle.SetOptStat(0)
-    # canv = ROOT.TCanvas('Gen_M_sel_div_M__YP', 'bar', 600, 600)
-    # canv.cd()
-    # s_hist1.GetYaxis().SetTitleOffset(1.2)
-    # s_hist1.GetXaxis().SetTitleOffset(1.0)
-    # s_hist1.GetYaxis().SetTitleSize(0.045)
-    # s_hist1.GetXaxis().SetTitleSize(0.045)
-    # s_hist1.Draw('colz')
-    # leg = ROOT.TLegend(0.5, 0.65, 0.8, 0.875)
-    # leg.SetTextSize(0.045); leg.SetShadowColor(0);        leg.SetFillStyle(0)
-    # leg.SetTextFont(42);   leg.SetBorderSize(0);
-    # leg.AddEntry(s_hist1, 'XToYYPrime'  , 'l')
-    # leg.SetLineColor(ROOT.kWhite)
-    # leg.SetFillColor(ROOT.kWhite)
-    # leg.Draw('same')
-
-    # lat = ROOT.TLatex()
-    # lat.SetNDC()
-    # #fout.WriteTObject(canv)
-    # canv.SaveAs('{od}/Gen_M_sel_div_M__YP.pdf'.format(od=outdir))
-    # canv.SaveAs('{od}/Gen_M_sel_div_M__YP.png'.format(od=outdir))
-
-    # "Reco_M_X_vs_M_Y" : ["M_X", "M_Y", "M_X", "M_Y", 50, 50, 0, 0, 6500, 500, "",binsForX,binsForY],
-    # s_hist1 = get2dhist(l_ex0, sel_str_Reco_matching_paper, "M_X", "M_Y", "M_X", "M_Y", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
-    # s_hist2 = get2dhist(l_ex0, "","M_X", "M_Y", "M_X", "M_Y", 0, 0, 0, 0, 0, 0, binsForX, binsForY)
-    # s_hist1.Divide(s_hist2)
-
-    # ROOT.gROOT.SetBatch()
-    # ROOT.gStyle.SetOptStat(0)
-    # canv = ROOT.TCanvas('Reco_M_sel_div_M__Y', 'bar', 600, 600)
-    # canv.cd()
-    # # s_hist1.GetYaxis().SetTitleOffset(1.2)
-    # # s_hist1.GetXaxis().SetTitleOffset(1.0)
-    # # s_hist1.GetYaxis().SetTitleSize(0.045)
-    # # s_hist1.GetXaxis().SetTitleSize(0.045)
-    # s_hist1.Draw('colz')
-    # leg = ROOT.TLegend(0.5, 0.65, 0.8, 0.875)
-    # leg.SetTextSize(0.045); leg.SetShadowColor(0);        leg.SetFillStyle(0)
-    # leg.SetTextFont(42);   leg.SetBorderSize(0);
-    # leg.AddEntry(s_hist1, 'XToYYPrime'  , 'l')
-    # leg.SetLineColor(ROOT.kWhite)
-    # leg.SetFillColor(ROOT.kWhite)
-    # leg.Draw('same')
-
-    # lat = ROOT.TLatex()
-    # lat.SetNDC()
-    # #fout.WriteTObject(canv)
-    # canv.SaveAs('{od}/Reco_M_sel_div_M__Y.pdf'.format(od=outdir))
-    # canv.SaveAs('{od}/Reco_M_sel_div_M__Y.png'.format(od=outdir))
-
-    # "Reco_M_X_vs_M_YP" : ["M_X", "M_YP", "M_X", "M_YP", 50, 50, 0, 0, 6500, 500, "",binsForX,binsForY],
-    # s_hist1 = get2dhist(l_ex0, sel_str_Reco_matching_paper, "M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForYP)
-    # s_hist2 = get2dhist(l_ex0, "","M_X", "M_YP", "M_X", "M_YP", 0, 0, 0, 0, 0, 0, binsForX, binsForYP)
-    # s_hist1.Divide(s_hist2)
-
-    # ROOT.gROOT.SetBatch()
-    # ROOT.gStyle.SetOptStat(0)
-    # canv = ROOT.TCanvas('Reco_M_sel_div_M__YP', 'bar', 600, 600)
-    # canv.cd()
-    # s_hist1.GetYaxis().SetTitleOffset(1.2)
-    # s_hist1.GetXaxis().SetTitleOffset(1.0)
-    # s_hist1.GetYaxis().SetTitleSize(0.045)
-    # s_hist1.GetXaxis().SetTitleSize(0.045)
-    # s_hist1.Draw('colz')
-    # leg = ROOT.TLegend(0.5, 0.65, 0.8, 0.875)
-    # leg.SetTextSize(0.045); leg.SetShadowColor(0);        leg.SetFillStyle(0)
-    # leg.SetTextFont(42);   leg.SetBorderSize(0);
-    # leg.AddEntry(s_hist1, 'XToYYPrime'  , 'l')
-    # leg.SetLineColor(ROOT.kWhite)
-    # leg.SetFillColor(ROOT.kWhite)
-    # leg.Draw('same')
-
-    # lat = ROOT.TLatex()
-    # lat.SetNDC()
-    # #fout.WriteTObject(canv)
-    # canv.SaveAs('{od}/Reco_M_sel_div_M__YP.pdf'.format(od=outdir))
-    # canv.SaveAs('{od}/Reco_M_sel_div_M__YP.png'.format(od=outdir))
-
-        # "Gen_M_j0Y" : ["GenJetAK8_mass[0]",100,0,1000,"((Gen_matched_Y[0]==1 && Gen_matched_Y[1]==0) && (Gen_matched_YP[0]==0 && Gen_matched_YP[1]==1))",''],
-        # "Gen_M_j1Y" : ["GenJetAK8_mass[1]",100,0,1000,"((Gen_matched_YP[0]==1 && Gen_matched_YP[1]==0) && (Gen_matched_Y[0]==0 && Gen_matched_Y[1]==1))",''],
-        # "Gen_M_j0YP" : ["GenJetAK8_mass[0]",100,0,1000,"((Gen_matched_YP[0]==1 && Gen_matched_YP[1]==0) && (Gen_matched_Y[0]==0 && Gen_matched_Y[1]==1))",''],
-        # "Gen_M_j1YP" : ["GenJetAK8_mass[1]",100,0,1000,"((Gen_matched_Y[0]==1 && Gen_matched_Y[1]==0) && (Gen_matched_YP[0]==0 && Gen_matched_YP[1]==1))",''],
-
-
-
 
     
 ##############################################
