@@ -56,6 +56,12 @@ class JobSubmitter(object):
         self._jobs.append(GenericJob(name, "{}/{}".format(self._base_dir, subworkdir)))
         self._jobs[-1]._wrapper_lines = wrapper_lines
 
+    def add_job_array(self, name, subworkdir, wrapper_lines, arguments, queue):
+        self._jobs.append(GenericJob(name, "{}/{}".format(self._base_dir, subworkdir)))
+        self._jobs[-1]._wrapper_lines = wrapper_lines
+        self._jobs[-1]._arguments = arguments
+        self._jobs[-1]._queue = queue
+
     def submit_jobs(self, debug=False):
         print("submitting {} jobs.".format(len(self._jobs)))
         for job in self._jobs:
