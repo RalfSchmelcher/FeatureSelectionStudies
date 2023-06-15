@@ -88,7 +88,7 @@ class SampleManager(object):
     def print_status(self):
         self.check_jobs()
         status_blocks = [
-            "{} {}".format(self.status.count(status_id), status_text)
+            "({}/{}) {}".format(self.status.count(status_id), self.njobs, status_text)
             for status_id, status_text in self.status_lut.items()
             if self.status.count(status_id) > 0
         ]
