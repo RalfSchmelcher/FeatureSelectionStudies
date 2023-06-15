@@ -9,7 +9,8 @@ class GenericJob(object):
         self._wrapper_lines = []
         self._arguments = []
         self._queue = 1
-
+        self.runtime = 10  # hours
+        self.runtime *= 60 * 60  # seconds
         self.memory = 4
         self.disk = 4
 
@@ -20,8 +21,8 @@ class GenericJob(object):
         if len(self._wrapper_lines) == 0:
             raise RuntimeError("job wrapper empty!")
         self.prep_job()
-        if not debug:
-            os.system("condor_submit {}/{}.submit".format(self._workdir, self._name))
+        debug_str = " --dry-run {}/{}_dryrun.log ".format(self._workdir, self._name) if debug else ""
+        os.system("condor_submit {}/{}.submit{}".format(self._workdir, self._name, debug_str))
 
     def prep_job(self):
         if not os.path.exists(self._workdir):
@@ -38,6 +39,7 @@ class GenericJob(object):
             submit_file.write("output            = {}.o$(ClusterId).$(Process)\n".format(self._name))
             submit_file.write("error             = {}.e$(ClusterId).$(Process)\n".format(self._name))
             submit_file.write("log               = {}.$(Cluster).log\n".format(self._name))
+            submit_file.write("+RequestRuntime   = {}\n".format(self.runtime))
             submit_file.write("RequestMemory     = {}G\n".format(self.memory))
             submit_file.write("RequestDisk       = {}G\n".format(self.disk))
             submit_file.write("JobBatchName      = {}\n".format(self._name))
