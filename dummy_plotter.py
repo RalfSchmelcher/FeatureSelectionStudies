@@ -1,9 +1,8 @@
 import ROOT, os, subprocess, sys, optparse, datetime
 from array import array
 import math
+import numpy as np
 date = datetime.date.today().isoformat()
-
-fname = 'RunIIAutumn18_all'
 
 def histStyle(hist,xtitle,color):
     markerstyle = 20 
@@ -19,8 +18,11 @@ def histStyle(hist,xtitle,color):
     return hist
 
 
-def gethist(tree,selcuts,vname,xtitle,nXbins,xmin,xmax, color = 1):
-    hist1 = ROOT.TH1F("hist1" ,'',nXbins,xmin,xmax)
+def gethist(tree,selcuts,vname,xtitle,nXbins,xmin,xmax, color = 1, Xbins=[]):
+    if Xbins != []:
+        hist1 = ROOT.TH1F("hist1" ,'',len(Xbins)-1,Xbins)
+    else:
+        hist1 = ROOT.TH1F("hist1" ,'',nXbins,xmin,xmax)
     if vname.startswith('d'):
         tree.Draw('abs({here})>>hist1'.format(here=vname), selcuts, 'goff')
     else :
@@ -34,12 +36,16 @@ def gethist(tree,selcuts,vname,xtitle,nXbins,xmin,xmax, color = 1):
 def get2dhist(tree, selcuts, vnamex, vnamey, xtitle, ytitle, nXbins, nYbins, xmin, ymin, xmax, ymax, Xbins, Ybins):
     if Xbins!=[] and Ybins!=[]: # Xbins and Ybins arrays instead
         hist2d = ROOT.TH2F("hist2d",'',len(Xbins)-1,Xbins,len(Ybins)-1,Ybins)
+        # print("1st option")
     elif Xbins!=[]: # Xbins array instead of xmin & xmax
         hist2d = ROOT.TH2F("hist2d",'',len(Xbins)-1,Xbins,nYbins,ymin,ymax)
+        # print("2nd option")
     elif Ybins!=[]: # Ybins array instead of ymin & ymax
         hist2d = ROOT.TH2F("hist2d",'',nXbins,xmin,xmax,len(Ybins)-1,Ybins)
+        # print("3rd option")
     else: # usual
         hist2d = ROOT.TH2F("hist2d" ,'',nXbins,xmin,xmax,nYbins,ymin,ymax)
+        # print("4th option")
     tree.Draw("{herey}:{herex}>>hist2d".format(herex=vnamex,herey=vnamey), selcuts, "goff")
     hist2d.GetXaxis().SetTitle(xtitle)
     hist2d.GetYaxis().SetTitle(ytitle)
@@ -57,24 +63,18 @@ sel_str_Reco_matching_paper = "(" + sel_str_Reco_paper + ") && (" + sel_str_Reco
 binsForX = array('f',[1000, 1500, 2000, 3000, 4000, 5000, 6000, 6500]) # +1 for last bin
 binsForY = array('f',[ 30,  60,  90, 120, 150, 200, 250, 300, 400, 500, 550]) # +1 for last bin
 binsForYP = array('f',[ 30,  60,  90, 120, 150, 200, 250, 300, 400, 500, 550]) # +1 for last bin
+# min_valueYX = min(binsForY[:-1]) / max(binsForX[:-1])
+# max_valueYX = max(binsForY[:-1]) / min(binsForX[:-1])
+# num_binsYX = len(binsForX[:-1]) * len(binsForY[:-1])
+# step_sizeYX = (max_valueYX - min_valueYX) / num_binsYX
+# binning_valuesYX = np.arange(min_valueYX, max_valueYX + 2*step_sizeYX, step_sizeYX)
+# print(binning_valuesYX)
+
+logBinning_YX = np.logspace(np.log10(1/200),np.log10(0.55),24)
 
 
-def overlayshapes():
-    outdir='genplots'
+def overlayshapes(outdir,l_ex0):
 
-    basedir='./'
-    outdir='{Here}{when}{here}'.format(Here=basedir,when=date,here='gen')
-    if outdir not in os.listdir(basedir):
-        os.system('mkdir -p {od}'.format(od=outdir))
-
-#
-#   change filename!
-#
-    f_ex0 = ROOT.TFile(f'{fname}.root', 'READ'); l_ex0 = f_ex0.Get('tree')
-    # f_ex1 = ROOT.TFile('/afs/cern.ch/work/a/anmehta/work/SL6_setup/CMSSW_5_3_20/src/TestPAT/MPIwithWW/lhetools/LatinoTreesLHE/WpmWmp_LL_genlevel.root', 'READ'); l_ex1 = f_ex1.Get('tree')
-    # f_ex2 = ROOT.TFile('/afs/cern.ch/work/a/anmehta/work/SL6_setup/CMSSW_5_3_20/src/TestPAT/MPIwithWW/lhetools/LatinoTreesLHE/WpmWmp_TLnLT_genlevel.root', 'READ'); l_ex2 = f_ex2.Get('tree')
-    
-    
     pdraw={
         #### vname : [vname, nXbins, xmin, xmax, sel, _info]
         # "nV" : ["nV",100,0,4,"",""],
@@ -126,6 +126,14 @@ def overlayshapes():
         # "SubJet_tau2" : ["SubJet_tau2",100,0,1,"",""],
         # "SubJet_tau3" : ["SubJet_tau3",100,0,1,"",""],
         # "SubJet_tau4" : ["SubJet_tau4",100,0,1,"",""],
+        "GenJet0_deltaR_Y" : ["GenJet0_deltaR_Y",100,-0.1,2,"",""],
+        "GenJet1_deltaR_Y" : ["GenJet1_deltaR_Y",100,-0.1,2,"",""],
+        "GenJet0_deltaR_YP" : ["GenJet0_deltaR_YP",100,-0.1,2,"",""],
+        "GenJet1_deltaR_YP" : ["GenJet1_deltaR_YP",100,-0.1,2,"",""],
+        "FatJet0_deltaR_Y" : ["FatJet0_deltaR_Y",100,-0.1,2,"",""],
+        "FatJet1_deltaR_Y" : ["FatJet1_deltaR_Y",100,-0.1,2,"",""],
+        "FatJet0_deltaR_YP" : ["FatJet0_deltaR_YP",100,-0.1,2,"",""],
+        "FatJet1_deltaR_YP" : ["FatJet1_deltaR_YP",100,-0.1,2,"",""],
 
         # tree->Draw("GenJetAK8_mass","(Gen_matched_YP[Iteration$]==1) && (Gen_matched_Y[abs(Iteration$-1)]==1)")
 
@@ -183,15 +191,15 @@ def overlayshapes():
         canv.SaveAs('{od}/{mww}.png'.format(od=outdir,mww=ikey))
 
 ###############################
-def overlay2dshapes():
-    outdir='genplots'
+def overlay2dshapes(outdir,l_ex0):
+    # outdir='genplots'
 
-    basedir='./'
-    outdir='{Here}{when}{here}'.format(Here=basedir,when=date,here='gen')
-    if outdir not in os.listdir(basedir):
-        os.system('mkdir -p {od}'.format(od=outdir))
+    # basedir='./'
+    # outdir='{Here}{when}{here}'.format(Here=basedir,when=date,here='gen')
+    # if outdir not in os.listdir(basedir):
+    #     os.system('mkdir -p {od}'.format(od=outdir))
 
-    f_ex0 = ROOT.TFile(f'{fname}.root', 'READ'); l_ex0 = f_ex0.Get('tree')
+    # f_ex0 = ROOT.TFile(f'{fname}.root', 'READ'); l_ex0 = f_ex0.Get('tree')
     # f_ex1 = ROOT.TFile('/afs/cern.ch/work/a/anmehta/work/SL6_setup/CMSSW_5_3_20/src/TestPAT/MPIwithWW/lhetools/LatinoTreesLHE/WpmWmp_LL_genlevel.root', 'READ'); l_ex1 = f_ex1.Get('tree')
     # f_ex2 = ROOT.TFile('/afs/cern.ch/work/a/anmehta/work/SL6_setup/CMSSW_5_3_20/src/TestPAT/MPIwithWW/lhetools/LatinoTreesLHE/WpmWmp_TLnLT_genlevel.root', 'READ'); l_ex2 = f_ex2.Get('tree')
     pdraw2d = {
@@ -210,10 +218,10 @@ def overlay2dshapes():
         "M_X_vs_M_YP" : ["M_X", "M_YP", "M_X", "M_YP", 50, 50, 0, 0, 6500, 500, "",binsForX,binsForYP],
         "M_Y_vs_M_YP" : ["M_Y", "M_YP", "M_Y", "M_YP", 50, 50, 0, 0, 500, 500, "",binsForY,binsForYP],
         # "M_X_vs_M_Y+M_YP" : ["M_X", "M_Y+M_YP", "M_X", "M_Y+M_YP", 50, 50, 0, 0, 6500, 1000, "",binsForX,[]],
-        "delta_R_qq_Y23_vs_delta_M" : ["delta_R_qq_Y23", "M_X-(M_Y+M_YP)", "delta_R_qq_Y23", "delta M", 200, 200, 0, 0, 2, 6500, "",[],[]],
-        "delta_R_qq_YP25_vs_delta_M" : ["delta_R_qq_YP25", "M_X-(M_Y+M_YP)", "delta_R_qq_YP25", "delta M", 200, 200, 0, 0, 2, 6500, "",[],[]],
-        "delta_R_qq_Y23_vs_M_Y_ratio" : ["delta_R_qq_Y23", "M_Y/M_X", "delta_R_qq_Y23", "M_Y_ratio", 200, 200, 0, 0, 2, 0.3, "V_pdgId==23",[],[]],
-        "delta_R_qq_YP25_vs_M_YP_ratio" : ["delta_R_qq_YP25", "M_YP/M_X", "delta_R_qq_YP25", "M_YP_ratio", 200, 200, 0, 0, 2, 0.3, "V_pdgId==25",[],[]],
+        # "delta_R_qq_Y23_vs_delta_M" : ["delta_R_qq_Y23", "M_X-(M_Y+M_YP)", "delta_R_qq_Y23", "delta M", 200, 200, 0, 0, 2, 6500, "",[],[]],
+        # "delta_R_qq_YP25_vs_delta_M" : ["delta_R_qq_YP25", "M_X-(M_Y+M_YP)", "delta_R_qq_YP25", "delta M", 200, 200, 0, 0, 2, 6500, "",[],[]],
+        "delta_R_qq_Y23_vs_M_Y_ratio_log" : ["4*M_Y/M_X", "delta_R_qq_Y23", "4*M_Y_ratio", "delta_R_qq_Y23", 500, 200, 0, 0, 0.55, 2, "V_pdgId==23",logBinning_YX,[]],
+        "delta_R_qq_YP25_vs_M_YP_ratio_log" : ["4*M_YP/M_X", "delta_R_qq_YP25", "4*M_YP_ratio" ,"delta_R_qq_YP25", 100, 200, 0, 0, 0.55, 2, "V_pdgId==25",logBinning_YX,[]],
 
         # # "Gen_M_jj_vs_M_jY" : ["Gen_M_jj", "GenJetAK8_mass", "Gen_M_jj", "M_jY", 50, 50, 0, 0, 6500, 1000, "((Gen_matched_Y[0]==1 && Gen_matched_Y[1]==0) && (Gen_matched_YP[0]==0 && Gen_matched_YP[1]==1)) || ((Gen_matched_Y[1]==1 && Gen_matched_Y[0]==0) && (Gen_matched_YP[1]==0 && Gen_matched_YP[0]==1))"],
         # # "Gen_M_jj_vs_M_jYP" : ["Gen_M_jj", "GenJetAK8_mass", "Gen_M_jj", "M_jYP", 50, 50, 0, 0, 6500, 1000, "((Gen_matched_YP[0]==1 && Gen_matched_YP[1]==0) && (Gen_matched_Y[0]==0 && Gen_matched_Y[1]==1)) || ((Gen_matched_YP[1]==1 && Gen_matched_YP[0]==0) && (Gen_matched_Y[1]==0 && Gen_matched_Y[0]==1))"],
@@ -250,6 +258,17 @@ def overlay2dshapes():
         # h_ex1.Draw('histsame')
         # h_ex2.Draw('histsame')
 
+        # if 'log' in ikey:
+        #     print("log plot found")
+        #     ROOT.gPad.SetLogx(1)
+        # else:
+        #     ROOT.gPad.SetLogx(0)
+        if "ratio" in ikey:
+            dR1 = ROOT.TF1("dR1","x",logBinning_YX[0],logBinning_YX[-1])
+            dR1.SetLineColor(46)
+            dR1.Draw("SAME")
+
+
         leg = ROOT.TLegend(0.5, 0.65, 0.8, 0.875)
         leg.SetTextSize(0.045); leg.SetShadowColor(0);        leg.SetFillStyle(0)
         leg.SetTextFont(42);   leg.SetBorderSize(0);
@@ -271,15 +290,15 @@ def overlay2dshapes():
 
 
 
-def overlayshapesSpecial():
-    outdir='genplots'
+def overlayshapesSpecial(outdir,l_ex0):
+    # outdir='genplots'
 
-    basedir='./'
-    outdir='{Here}{when}{here}'.format(Here=basedir,when=date,here='gen')
-    if outdir not in os.listdir(basedir):
-        os.system('mkdir -p {od}'.format(od=outdir))
+    # basedir='./'
+    # outdir='{Here}{when}{here}'.format(Here=basedir,when=date,here='gen')
+    # if outdir not in os.listdir(basedir):
+    #     os.system('mkdir -p {od}'.format(od=outdir))
 
-    f_ex0 = ROOT.TFile(f'{fname}.root', 'READ'); l_ex0 = f_ex0.Get('tree')
+    # f_ex0 = ROOT.TFile(f'{fname}.root', 'READ'); l_ex0 = f_ex0.Get('tree')
 
 
 
@@ -471,6 +490,7 @@ def overlayshapesSpecial():
 
 
 
+
     for s_hist in s_hists:
         print(s_hist[1])
         ROOT.gROOT.SetBatch()
@@ -497,6 +517,169 @@ def overlayshapesSpecial():
         canv.SaveAs('{od}/{title}.pdf'.format(od=outdir,title=s_hist[1]))
         canv.SaveAs('{od}/{title}.png'.format(od=outdir,title=s_hist[1]))
 
+
+def overlayshapesQCD(outdir,l_ex0,l_ex1):
+    pdraw={
+        #### xtitle : [xname, nXbins, xmin, xmax, sel0, sel1, _info]
+              "GenJetAK8_pt[0]" : [  "GenJetAK8_pt[0]",100 ,0   ,4000,"","","no selection"],
+             "GenJetAK8_eta[0]" : [ "GenJetAK8_eta[0]",100 ,-3.5,3.5 ,"","","no selection"],
+             "GenJetAK8_phi[0]" : [ "GenJetAK8_phi[0]",100 ,-3.5,3.5 ,"","","no selection"],
+            "GenJetAK8_mass[0]" : ["GenJetAK8_mass[0]",100 ,0   ,700 ,"","","no selection"],
+          "GenJetAK8_pt_sel[0]" : [  "GenJetAK8_pt[0]",100 ,0   ,4000,sel_str_Gen_paper,sel_str_Gen_paper,"paper sel"],
+         "GenJetAK8_eta_sel[0]" : [ "GenJetAK8_eta[0]",100 ,-3.5,3.5 ,sel_str_Gen_paper,sel_str_Gen_paper,"paper sel"],
+         "GenJetAK8_phi_sel[0]" : [ "GenJetAK8_phi[0]",100 ,-3.5,3.5 ,sel_str_Gen_paper,sel_str_Gen_paper,"paper sel"],
+        "GenJetAK8_mass_sel[0]" : ["GenJetAK8_mass[0]",100 ,0   ,700 ,sel_str_Gen_paper,sel_str_Gen_paper,"paper sel"],
+
+              "GenJetAK8_pt[1]" : [  "GenJetAK8_pt[1]",100 ,0   ,4000,"","","no selection"],
+             "GenJetAK8_eta[1]" : [ "GenJetAK8_eta[1]",100 ,-3.5,3.5 ,"","","no selection"],
+             "GenJetAK8_phi[1]" : [ "GenJetAK8_phi[1]",100 ,-3.5,3.5 ,"","","no selection"],
+            "GenJetAK8_mass[1]" : ["GenJetAK8_mass[1]",100 ,0   ,700 ,"","","no selection"],
+          "GenJetAK8_pt_sel[1]" : [  "GenJetAK8_pt[1]",100 ,0   ,4000,sel_str_Gen_paper,sel_str_Gen_paper,"paper sel"],
+         "GenJetAK8_eta_sel[1]" : [ "GenJetAK8_eta[1]",100 ,-3.5,3.5 ,sel_str_Gen_paper,sel_str_Gen_paper,"paper sel"],
+         "GenJetAK8_phi_sel[1]" : [ "GenJetAK8_phi[1]",100 ,-3.5,3.5 ,sel_str_Gen_paper,sel_str_Gen_paper,"paper sel"],
+        "GenJetAK8_mass_sel[1]" : ["GenJetAK8_mass[1]",100 ,0   ,700 ,sel_str_Gen_paper,sel_str_Gen_paper,"paper sel"],
+
+        "Gen_M_jj" : ["Gen_M_jj",326,0,7000,"","","no selection"],
+        "Gen_M_jj_sel" : ["Gen_M_jj",326,0,7000,sel_str_Gen_paper,sel_str_Gen_paper,"paper sel"],
+
+ 
+                   "FatJet_pt[0]" : [       "FatJet_pt[0]",100 ,0   ,4000,"","","no selection"],
+                  "FatJet_eta[0]" : [      "FatJet_eta[0]",100 ,-3.5,3.5 ,"","","no selection"],
+                  "FatJet_phi[0]" : [      "FatJet_phi[0]",100 ,-3.5,3.5 ,"","","no selection"],
+                 "FatJet_mass[0]" : [     "FatJet_mass[0]",100 ,0   ,700 ,"","","no selection"],
+            "FatJet_msoftdrop[0]" : ["FatJet_msoftdrop[0]",100 ,0   ,700 ,"","","no selection"],
+               "FatJet_pt_sel[0]" : [       "FatJet_pt[0]",100 ,0   ,4000,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+              "FatJet_eta_sel[0]" : [      "FatJet_eta[0]",100 ,-3.5,3.5 ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+              "FatJet_phi_sel[0]" : [      "FatJet_phi[0]",100 ,-3.5,3.5 ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+             "FatJet_mass_sel[0]" : [     "FatJet_mass[0]",100 ,0   ,700 ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_msoftdrop_sel[0]" : ["FatJet_msoftdrop[0]",100 ,0   ,700 ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+
+                   "FatJet_pt[1]" : [       "FatJet_pt[1]",100 ,0   ,4000,"","","no selection"],
+                  "FatJet_eta[1]" : [      "FatJet_eta[1]",100 ,-3.5,3.5 ,"","","no selection"],
+                  "FatJet_phi[1]" : [      "FatJet_phi[1]",100 ,-3.5,3.5 ,"","","no selection"],
+                 "FatJet_mass[1]" : [     "FatJet_mass[1]",100 ,0   ,700 ,"","","no selection"],
+            "FatJet_msoftdrop[1]" : ["FatJet_msoftdrop[1]",100 ,0   ,700 ,"","","no selection"],
+               "FatJet_pt_sel[1]" : [       "FatJet_pt[1]",100 ,0   ,4000,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+              "FatJet_eta_sel[1]" : [      "FatJet_eta[1]",100 ,-3.5,3.5 ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+              "FatJet_phi_sel[1]" : [      "FatJet_phi[1]",100 ,-3.5,3.5 ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+             "FatJet_mass_sel[1]" : [     "FatJet_mass[1]",100 ,0   ,700 ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_msoftdrop_sel[1]" : ["FatJet_msoftdrop[1]",100 ,0   ,700 ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+
+        "Reco_M_jj" : ["Reco_M_jj",326,0,7000,"","","no selection"],
+        "Reco_M_jj_sel" : ["Reco_M_jj",326,0,7000,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+
+
+               "nFatJet" : ["nFatJet"       ,6  ,0 ,5 ,"","","no selection"],
+        "FatJet_n2b1[0]" : ["FatJet_n2b1[0]",100,0,0.6,"","","no selection"],
+        "FatJet_n3b1[0]" : ["FatJet_n3b1[0]",100,0,5  ,"","","no selection"],
+        "FatJet_tau1[0]" : ["FatJet_tau1[0]",100,0,0.7,"","","no selection"],
+        "FatJet_tau2[0]" : ["FatJet_tau2[0]",100,0,0.3,"","","no selection"],
+        "FatJet_tau3[0]" : ["FatJet_tau3[0]",100,0,0.2,"","","no selection"],
+        "FatJet_tau4[0]" : ["FatJet_tau4[0]",100,0,0.2,"","","no selection"],
+
+        "FatJet_n2b1[1]" : ["FatJet_n2b1[1]",100,0,0.6,"","","no selection"],
+        "FatJet_n3b1[1]" : ["FatJet_n3b1[1]",100,0,5  ,"","","no selection"],
+        "FatJet_tau1[1]" : ["FatJet_tau1[1]",100,0,0.7,"","","no selection"],
+        "FatJet_tau2[1]" : ["FatJet_tau2[1]",100,0,0.3,"","","no selection"],
+        "FatJet_tau3[1]" : ["FatJet_tau3[1]",100,0,0.2,"","","no selection"],
+        "FatJet_tau4[1]" : ["FatJet_tau4[1]",100,0,0.2,"","","no selection"],
+
+               "nSubJet" : ["nSubJet"       ,6  ,0 ,5 ,"","","no selection"],
+        "SubJet_mass[0]" : ["SubJet_mass[0]",100,0,140,"","","no selection"],
+        "SubJet_n2b1[0]" : ["SubJet_n2b1[0]",100,0,0.5,"","","no selection"],
+        "SubJet_n3b1[0]" : ["SubJet_n3b1[0]",100,0,8  ,"","","no selection"],
+        "SubJet_tau1[0]" : ["SubJet_tau1[0]",100,0,0.3,"","","no selection"],
+        "SubJet_tau2[0]" : ["SubJet_tau2[0]",100,0,0.3,"","","no selection"],
+        "SubJet_tau3[0]" : ["SubJet_tau3[0]",100,0,0.3,"","","no selection"],
+        "SubJet_tau4[0]" : ["SubJet_tau4[0]",100,0,0.3,"","","no selection"],
+        
+        "SubJet_mass[1]" : ["SubJet_mass[1]",100,0,140,"","","no selection"],
+        "SubJet_n2b1[1]" : ["SubJet_n2b1[1]",100,0,0.5,"","","no selection"],
+        "SubJet_n3b1[1]" : ["SubJet_n3b1[1]",100,0,8  ,"","","no selection"],
+        "SubJet_tau1[1]" : ["SubJet_tau1[1]",100,0,0.3,"","","no selection"],
+        "SubJet_tau2[1]" : ["SubJet_tau2[1]",100,0,0.3,"","","no selection"],
+        "SubJet_tau3[1]" : ["SubJet_tau3[1]",100,0,0.3,"","","no selection"],
+        "SubJet_tau4[1]" : ["SubJet_tau4[1]",100,0,0.3,"","","no selection"],
+
+
+               "nFatJet_sel" : ["nFatJet"       ,6  ,0 ,5 ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_n2b1_sel[0]" : ["FatJet_n2b1[0]",100,0,0.6,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_n3b1_sel[0]" : ["FatJet_n3b1[0]",100,0,5  ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_tau1_sel[0]" : ["FatJet_tau1[0]",100,0,0.7,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_tau2_sel[0]" : ["FatJet_tau2[0]",100,0,0.3,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_tau3_sel[0]" : ["FatJet_tau3[0]",100,0,0.2,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_tau4_sel[0]" : ["FatJet_tau4[0]",100,0,0.2,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+
+        "FatJet_n2b1_sel[1]" : ["FatJet_n2b1[1]",100,0,0.6,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_n3b1_sel[1]" : ["FatJet_n3b1[1]",100,0,5  ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_tau1_sel[1]" : ["FatJet_tau1[1]",100,0,0.7,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_tau2_sel[1]" : ["FatJet_tau2[1]",100,0,0.3,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_tau3_sel[1]" : ["FatJet_tau3[1]",100,0,0.2,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "FatJet_tau4_sel[1]" : ["FatJet_tau4[1]",100,0,0.2,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+
+               "nSubJet_sel" : ["nSubJet"       ,6  ,0 ,5 ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_mass_sel[0]" : ["SubJet_mass[0]",100,0,140,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_n2b1_sel[0]" : ["SubJet_n2b1[0]",100,0,0.5,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_n3b1_sel[0]" : ["SubJet_n3b1[0]",100,0,8  ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_tau1_sel[0]" : ["SubJet_tau1[0]",100,0,0.3,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_tau2_sel[0]" : ["SubJet_tau2[0]",100,0,0.3,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_tau3_sel[0]" : ["SubJet_tau3[0]",100,0,0.3,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_tau4_sel[0]" : ["SubJet_tau4[0]",100,0,0.3,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+
+        "SubJet_mass_sel[1]" : ["SubJet_mass[1]",100,0,140,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_n2b1_sel[1]" : ["SubJet_n2b1[1]",100,0,0.5,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_n3b1_sel[1]" : ["SubJet_n3b1[1]",100,0,8  ,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_tau1_sel[1]" : ["SubJet_tau1[1]",100,0,0.3,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_tau2_sel[1]" : ["SubJet_tau2[1]",100,0,0.3,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_tau3_sel[1]" : ["SubJet_tau3[1]",100,0,0.3,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        "SubJet_tau4_sel[1]" : ["SubJet_tau4[1]",100,0,0.3,sel_str_Reco_paper,sel_str_Reco_paper,"paper sel"],
+        }
+    for ikey,ival in pdraw.items():
+        print(f'{ikey} with bkg')
+        ROOT.gROOT.SetBatch()
+        ROOT.gStyle.SetOptStat(0)
+        canv = ROOT.TCanvas(f"{ikey}_with_bkg", 'bar', 600, 600)
+        canv.cd()
+        if ('SubJet_mass' in ikey):# or ('tau' in ikey):
+            print("log plot found")
+            ROOT.gPad.SetLogx(1)
+            logBins = np.logspace(np.log10(ival[2]) if ival[2]>0 else np.log10(1e-1)
+                                  ,np.log10(ival[3]),np.log10(ival[1]))
+            #               tree,seli,xname,xtitle,nXbins,xmin,xmax, color=1, Xbins=[]
+            h_ex0 = gethist(l_ex0,ival[4],ival[0],f"{ikey}_with_bkg",ival[1],ival[2],ival[3],ROOT.kAzure+1, logBins)
+            h_ex1 = gethist(l_ex1,ival[5],ival[0],f"{ikey}_with_bkg",ival[1],ival[2],ival[3],ROOT.kOrange+5, logBins)
+        else:
+            ROOT.gPad.SetLogx(0)
+            h_ex0 = gethist(l_ex0,ival[4],ival[0],f"{ikey}_with_bkg",ival[1],ival[2],ival[3],ROOT.kAzure+1)
+            h_ex1 = gethist(l_ex1,ival[5],ival[0],f"{ikey}_with_bkg",ival[1],ival[2],ival[3],ROOT.kOrange+5)
+
+        h_ex1.Draw('hist')
+        h_ex1.Scale(1/h_ex1.Integral() if h_ex1.Integral() > 0 else 0)
+        h_ex1.SetFillColorAlpha(ROOT.kOrange+5, 0.2)
+        h_ex0.Draw('histsame')
+        h_ex0.Scale(1/h_ex0.Integral() if h_ex0.Integral() > 0 else 0)
+        h_ex0.SetFillColorAlpha(ROOT.kAzure+1, 0.5)
+        ymax=max(h_ex0.GetMaximum(),h_ex1.GetMaximum(),0)
+        h_ex0.GetYaxis().SetRangeUser(0.,ymax+ymax*0.1)
+        h_ex1.GetYaxis().SetRangeUser(0.,ymax+ymax*0.1)
+        h_ex0.GetYaxis().SetTitleOffset(1)
+        h_ex1.GetYaxis().SetTitleOffset(1)
+
+
+        # TODO bins for logplot log-like with np.logspace
+
+        leg = ROOT.TLegend(0.65, 0.78, 0.9, 0.9)
+        leg.SetBorderSize(0); leg.SetShadowColor(0); leg.SetFillStyle(0)
+        leg.AddEntry(h_ex0, 'Signal', 'l')
+        leg.AddEntry(h_ex1, 'Background', 'l')
+        leg.AddEntry('NULL', ival[6],'')
+        leg.AddEntry('NULL', str(h_ex0.GetEntries())+" entries",'')
+        leg.Draw('same')
+
+        canv.SaveAs('{od}/{mww}_with_bkg.pdf'.format(od=outdir,mww=ikey))
+        canv.SaveAs('{od}/{mww}_with_bkg.png'.format(od=outdir,mww=ikey))
+
+
     
 ##############################################
 
@@ -509,6 +692,16 @@ if __name__ == '__main__':
 
 
     if opts.overlayshapes:
-        overlayshapes()
-        overlay2dshapes()
-        overlayshapesSpecial()
+        outdir='genplots'
+        basedir='./'
+        outdir='{Here}{when}{here}'.format(Here=basedir,when=date,here='gen')
+        if outdir not in os.listdir(basedir):
+            os.system('mkdir -p {od}'.format(od=outdir))
+
+        f_ex0 = ROOT.TFile('RunIIAutumn18_signal.root', 'READ'); l_ex0 = f_ex0.Get('tree')
+        f_ex1 = ROOT.TFile('RunIIAutumn18_background.root', 'READ'); l_ex1 = f_ex1.Get('tree')
+
+        # overlayshapes(outdir,l_ex0)
+        # overlay2dshapes(outdir,l_ex0)
+        # overlayshapesSpecial(outdir,l_ex0)
+        overlayshapesQCD(outdir,l_ex0,l_ex1)
