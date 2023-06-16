@@ -167,12 +167,12 @@ class SampleManager(object):
 
         if len(jobids) == 0:
             # submitting all jobs
-            jobs = zip(
-                self.jobids, self.files, [chunk[0] for chunk in self.chunks], [chunk[1] for chunk in self.chunks]
-            )
+            jobs = zip(self.ids, self.files, [chunk[0] for chunk in self.chunks], [chunk[1] for chunk in self.chunks])
         else:
             # only submitting some jobs
-            jobs = [(jobid, self.files[jobid], self.chunks[jobid][0], self.chunks[jobid][1]) for jobid in jobids]
+            jobs = [
+                (self.ids[jobid], self.files[jobid], self.chunks[jobid][0], self.chunks[jobid][1]) for jobid in jobids
+            ]
 
         if not debug:
             for jobid in jobids:
