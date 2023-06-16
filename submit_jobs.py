@@ -216,8 +216,8 @@ class SampleManager(object):
 if __name__ == "__main__":
     import argparse
 
-    script_dir = "/afs/desy.de/user/a/albrechs/xxl/af-cms/ralf/FeatureSelectionStudies"
-    base_dir = "/nfs/dust/cms/user/albrechs/ralf/customTrees"
+    script_dir = "/afs/desy.de/user/s/schmelch/GenLevelStudies"
+    base_dir = "/nfs/dust/cms/user/schmelch/customTrees"
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", action="store_true", help="Do not submit any jobs but create all necessary files.")
