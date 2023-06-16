@@ -2,24 +2,25 @@
 from __future__ import print_function
 from JobSubmitter import JobSubmitter
 import ROOT
+import numpy as np
 import glob
 import os
 import logging
 import json
 logging.basicConfig()
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
-def test_root_file(fname, tree_name="tree"):
+def get_tree_nentries(fname, tree_name="tree"):
     try:
         f = ROOT.TFile.Open(fname)
         tree = f.Get(tree_name)
         n_entries = tree.GetEntries() # noqa
-        return True
+        return n_entries
     except BaseException as e:
         logger.warn(e)
-        return False
+        return -1
 
 
 class SampleManager(object):
@@ -34,6 +35,7 @@ class SampleManager(object):
         if not os.path.exists(self.workdir):
             os.makedirs(self.workdir)
 
+        self.chunksize = 100000
         self._resubmit_counter = 0
         self._merged = False
         self.status_lut = {0: "unsubmitted", 1: "submitted", 2: "finished"}
@@ -42,7 +44,7 @@ class SampleManager(object):
         if os.path.isfile(self._manager_info_path):
             self.load_info()
         else:
-            self.files = glob.glob(self._file_pattern)
+            self.build_chunks(self._file_pattern)
             self.njobs = len(self.files)
             self.jobids = range(self.njobs)
             self.status = [0] * self.njobs
@@ -68,7 +70,7 @@ class SampleManager(object):
                 "cp {}/dummy_nanoAOD_plotter.py .".format(self._script_dir),
                 "cp {}/hvt_mass_hypotheses_util.py .".format(self._script_dir),
                 'echo "processing signal tree"',
-                "python3 dummy_nanoAOD_plotter.py $1 $2",
+                "python3 dummy_nanoAOD_plotter.py $1 $2 $3 $4",
                 "ls -lah",
                 'echo "copying outputfiles"',
                 "cp *.root {}".format(self.workdir),
@@ -79,11 +81,36 @@ class SampleManager(object):
                 "ls -lah",
                 "cp {}/dummy_nanoAOD_plotter_bkg.py .".format(self._script_dir),
                 'echo "processing background tree"',
-                "python3 dummy_nanoAOD_plotter_bkg.py $1 $2",
+                "python3 dummy_nanoAOD_plotter_bkg.py $1 $2 $3 $4",
                 "ls -lah",
                 'echo "copying outputfiles"',
                 "cp *.root {}".format(self.workdir),
             ]
+
+    def build_chunks(self, file_pattern):
+        root_files = glob.glob(file_pattern)
+        self.files = []
+        self.ids = []
+        self.chunks = []
+        for file_id, fname in enumerate(root_files):
+            nevents = get_tree_nentries(fname, tree_name="Events")
+            n_chunks = int(np.ceil(float(nevents)/float(self.chunksize)))
+            chunks = [
+                [self.chunksize * ichunk, self.chunksize * (ichunk + 1)] for ichunk in range(n_chunks)
+            ]
+            chunks[-1][1] = nevents
+
+            file_id = root_files.index(fname)
+
+            if len(chunks) > 1:
+                for ichunk, chunk in enumerate(chunks):
+                    self.files.append(fname)
+                    self.chunks.append(chunk)
+                    self.ids.append("{}_{}".format(file_id, ichunk))
+            else:
+                self.files.append(fname)
+                self.chunks.append(chunks[0])
+                self.ids.append(str(file_id))
 
     def print_status(self):
         self.check_jobs()
@@ -101,7 +128,9 @@ class SampleManager(object):
             manager_info_file.write(json.dumps(
                 {
                     "files": self.files,
-                    "ids": self.jobids,
+                    "ids": self.ids,
+                    "jobids": self.jobids,
+                    "chunks": self.chunks,
                     "status": self.status,
                     "resubmit_counter": self._resubmit_counter,
                     "merged": self._merged,
@@ -114,21 +143,23 @@ class SampleManager(object):
         manager_info = json.load(open(self._manager_info_path, "r"))
         self.files = manager_info["files"]
         self.njobs = len(self.files)
-        self.jobids = manager_info["ids"]
+        self.ids = manager_info["ids"]
+        self.jobids = manager_info["jobids"]
+        self.chunks = manager_info["chunks"]
         self.status = manager_info["status"]
         self._resubmit_counter = manager_info["resubmit_counter"]
         self._merged = manager_info["merged"]
 
     def check_jobs(self):
-        for jobid in self.jobids:
+        for ijob, jobid in enumerate(self.ids):
             outputfile_path = "{}/{}_{}.root".format(self.workdir, self._output_file_prefix, jobid)
             if os.path.isfile(outputfile_path):
-                if test_root_file(outputfile_path):
-                    self.status[jobid] = 2
+                if get_tree_nentries(outputfile_path) > 0:
+                    self.status[ijob] = 2
             final_file = "{}/{}.root".format(self.workdir, self._name)
-            if os.path.isfile(final_file):
-                if test_root_file(final_file):
-                    self._merged = True
+        if os.path.isfile(final_file):
+            if get_tree_nentries(final_file) > 0:
+                self._merged = True
         self.dump_info()
 
     def submit_jobs(self, debug, jobids=[], batchname_suffix=""):
@@ -136,10 +167,12 @@ class SampleManager(object):
 
         if len(jobids) == 0:
             # submitting all jobs
-            jobs = zip(self.jobids, self.files)
+            jobs = zip(
+                self.jobids, self.files, [chunk[0] for chunk in self.chunks], [chunk[1] for chunk in self.chunks]
+            )
         else:
             # only submitting some jobs
-            jobs = [(jobid, self.files[jobid]) for jobid in jobids]
+            jobs = [(jobid, self.files[jobid], self.chunks[jobid][0], self.chunks[jobid][1]) for jobid in jobids]
 
         if not debug:
             for jobid in jobids:
@@ -149,8 +182,8 @@ class SampleManager(object):
             name="{}_TreeMaker{}".format(self._name, batchname_suffix),
             subworkdir=".",
             wrapper_lines=self._wrapper_lines,
-            arguments=["$(InputFile) $(MyJobIndex)"],
-            queue="MyJobIndex InputFile from ({}\n)".format(
+            arguments=["$(InputFile) $(MyJobIndex) $(FirstEvent) $(LastEvent)"],
+            queue="MyJobIndex InputFile FirstEvent LastEvent from ({}\n)".format(
                 "\n".join(" ".join(map(str, job)) for job in jobs)
             )
         )
@@ -183,8 +216,8 @@ class SampleManager(object):
 if __name__ == "__main__":
     import argparse
 
-    script_dir = "/afs/desy.de/user/s/schmelch/GenLevelStudies"
-    base_dir = "/nfs/dust/cms/user/schmelch/customTrees"
+    script_dir = "/afs/desy.de/user/a/albrechs/xxl/af-cms/ralf/FeatureSelectionStudies"
+    base_dir = "/nfs/dust/cms/user/albrechs/ralf/customTrees"
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", action="store_true", help="Do not submit any jobs but create all necessary files.")
@@ -193,37 +226,35 @@ if __name__ == "__main__":
     parser.add_argument("--resubmit", action="store_true", help="Resubmit jobs that failed previously.")
 
     args = parser.parse_args()
-    signal_manager = SampleManager(
-        name="signal",
-        file_pattern=(
-            "/pnfs/desy.de/cms/tier2/store/user/anmehta/resSrch/XToYYprime_YToQQ_YprimeToQQ_narrow_TuneCP5"
-            "_PSWeights_13TeV-madgraph-pythia8_RunIIAutumn18/*.root"
+    managers = [
+        SampleManager(
+            name="XToYYprime",
+            file_pattern=(
+                "/pnfs/desy.de/cms/tier2/store/user/anmehta/resSrch/XToYYprime_YToQQ_YprimeToQQ_narrow_TuneCP5"
+                "_PSWeights_13TeV-madgraph-pythia8_RunIIAutumn18/*.root"
+            ),
+            base_dir=base_dir,
+            script_dir=script_dir,
+            signal=True,
         ),
-        base_dir=base_dir,
-        script_dir=script_dir,
-        signal=True,
-    )
+        # SampleManager(
+        #     name="QCD",
+        #     file_pattern=(
+        #         "/pnfs/desy.de/cms/tier2/store/user/anmehta/resSrch/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8_"
+        #         "RunIIAutumn18/*.root"
+        #     ),
+        #     base_dir=base_dir,
+        #     script_dir=script_dir,
+        #     signal=False,
+        # ),
+    ]
+    for manager in managers:
+        if args.submit:
+            manager.submit_jobs(debug=args.debug)
+        if args.resubmit:
+            manager.resubmit_jobs(debug=args.debug)
 
-    background_manager = SampleManager(
-        name="background",
-        file_pattern=(
-            "/pnfs/desy.de/cms/tier2/store/user/anmehta/resSrch/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8_"
-            "RunIIAutumn18/*.root"
-        ),
-        base_dir=base_dir,
-        script_dir=script_dir,
-        signal=False,
-    )
-    if args.submit:
-        signal_manager.submit_jobs(debug=args.debug)
-        background_manager.submit_jobs(debug=args.debug)
-    if args.resubmit:
-        signal_manager.resubmit_jobs(debug=args.debug)
-        background_manager.resubmit_jobs(debug=args.debug)
+        if args.hadd:
+            manager.merge_jobs()
 
-    if args.hadd:
-        signal_manager.merge_jobs()
-        background_manager.merge_jobs()
-
-    signal_manager.print_status()
-    background_manager.print_status()
+        manager.print_status()
