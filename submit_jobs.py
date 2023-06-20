@@ -35,7 +35,7 @@ class SampleManager(object):
         if not os.path.exists(self.workdir):
             os.makedirs(self.workdir)
 
-        self.chunksize = 100000
+        self.chunksize = 50000
         self._resubmit_counter = 0
         self._merged = False
         self.status_lut = {0: "unsubmitted", 1: "submitted", 2: "finished"}
@@ -167,6 +167,7 @@ class SampleManager(object):
 
         if len(jobids) == 0:
             # submitting all jobs
+            jobids=self.jobids
             jobs = zip(self.ids, self.files, [chunk[0] for chunk in self.chunks], [chunk[1] for chunk in self.chunks])
         else:
             # only submitting some jobs
@@ -237,16 +238,16 @@ if __name__ == "__main__":
             script_dir=script_dir,
             signal=True,
         ),
-        # SampleManager(
-        #     name="QCD",
-        #     file_pattern=(
-        #         "/pnfs/desy.de/cms/tier2/store/user/anmehta/resSrch/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8_"
-        #         "RunIIAutumn18/*.root"
-        #     ),
-        #     base_dir=base_dir,
-        #     script_dir=script_dir,
-        #     signal=False,
-        # ),
+        SampleManager(
+            name="QCD",
+            file_pattern=(
+                "/pnfs/desy.de/cms/tier2/store/user/anmehta/resSrch/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8_"
+                "RunIIAutumn18/*.root"
+            ),
+            base_dir=base_dir,
+            script_dir=script_dir,
+            signal=False,
+        ),
     ]
     for manager in managers:
         if args.submit:
