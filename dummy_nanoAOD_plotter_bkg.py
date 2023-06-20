@@ -15,7 +15,7 @@ else:
     fIn=ROOT.TFile.Open("/pnfs/desy.de/cms/tier2/store/user/anmehta/resSrch/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIAutumn18/F6B34C92-581B-034F-8283-65DC1F68BD7F.root") 
     job_id = "debug"
     fName="RunIIAutumn18_QCD_debug"
-    max_events=500
+    max_events=2000
 
 ttree=fIn.Get('Events')
 fOut = ROOT.TFile("%s.root"%fName,"recreate")
@@ -66,6 +66,14 @@ SubJet_tau4 = array("f", 4*[-9999.])
 Reco_matched_Y = array("i", [-1,-1])
 Reco_matched_YP = array("i", [-1,-1])
 Reco_M_jj = array("f", [-9999.])
+GenJet0_deltaR_Y = array("f", 2*[-9999.])
+GenJet1_deltaR_Y = array("f", 2*[-9999.])
+GenJet0_deltaR_YP = array("f", 2*[-9999.])
+GenJet1_deltaR_YP = array("f", 2*[-9999.])
+FatJet0_deltaR_Y = array("f", 2*[-9999.])
+FatJet1_deltaR_Y = array("f", 2*[-9999.])
+FatJet0_deltaR_YP = array("f", 2*[-9999.])
+FatJet1_deltaR_YP = array("f", 2*[-9999.])
 
 outTree.Branch("nV",nV,"nV/I")
 outTree.Branch("V_pt",V_pt,"V_pt[nV]/F")
@@ -111,6 +119,14 @@ outTree.Branch("SubJet_tau4",SubJet_tau4,"SubJet_tau4[nSubJet]/F")
 outTree.Branch("Reco_matched_Y",Reco_matched_Y,"Reco_matched_Y[nSubJet]/I")
 outTree.Branch("Reco_matched_YP",Reco_matched_YP,"Reco_matched_YP[nSubJet]/I")
 outTree.Branch("Reco_M_jj",Reco_M_jj,"Reco_M_jj/F")
+outTree.Branch("GenJet0_deltaR_Y",GenJet0_deltaR_Y,"GenJet0_deltaR_Y[2]/F")
+outTree.Branch("GenJet1_deltaR_Y",GenJet1_deltaR_Y,"GenJet1_deltaR_Y[2]/F")
+outTree.Branch("GenJet0_deltaR_YP",GenJet0_deltaR_YP,"GenJet0_deltaR_YP[2]/F")
+outTree.Branch("GenJet1_deltaR_YP",GenJet1_deltaR_YP,"GenJet1_deltaR_YP[2]/F")
+outTree.Branch("FatJet0_deltaR_Y",FatJet0_deltaR_Y,"FatJet0_deltaR_Y[2]/F")
+outTree.Branch("FatJet1_deltaR_Y",FatJet1_deltaR_Y,"FatJet1_deltaR_Y[2]/F")
+outTree.Branch("FatJet0_deltaR_YP",FatJet0_deltaR_YP,"FatJet0_deltaR_YP[2]/F")
+outTree.Branch("FatJet1_deltaR_YP",FatJet1_deltaR_YP,"FatJet1_deltaR_YP[2]/F")
 
 
 nevts=0
@@ -149,6 +165,13 @@ for ev in ttree:
         subjet_idx.append(ev.FatJet_subJetIdx2[j])
         FatJet_subJetIdx1[j] = ev.FatJet_subJetIdx1[j]
         FatJet_subJetIdx2[j] = ev.FatJet_subJetIdx2[j]
+        FatJet_msoftdrop[j] = ev.FatJet_msoftdrop[j]
+        FatJet_n2b1[j] = ev.FatJet_n2b1[j]
+        FatJet_n3b1[j] = ev.FatJet_n3b1[j]
+        FatJet_tau1[j] = ev.FatJet_tau1[j]
+        FatJet_tau2[j] = ev.FatJet_tau2[j]
+        FatJet_tau3[j] = ev.FatJet_tau3[j]
+        FatJet_tau4[j] = ev.FatJet_tau4[j]
         FatJet_pt[j] = ev.FatJet_pt[j]
         FatJet_eta[j] = ev.FatJet_eta[j]
         FatJet_phi[j] = ev.FatJet_phi[j]
@@ -157,7 +180,6 @@ for ev in ttree:
     Reco_M_jj[0] = (fatJet_vectors[0] + fatJet_vectors[1]).M()
 
     
-
     if ev.nSubJet < 4: continue
     nSubJet[0] = ev.nSubJet
     for i,j in enumerate(subjet_idx):
