@@ -14,11 +14,16 @@ except OSError as error:
     pass
 
 max_events=-1
+first_event=0
+last_event=-1
 if len(sys.argv)>2:
     input_file=sys.argv[1]
     job_id=sys.argv[2]
     fIn=ROOT.TFile.Open(input_file)
     fName="RunIIAutumn18_{}".format(job_id)
+    if len(sys.argv)>4:
+        first_event=int(sys.argv[3])
+        last_event=int(sys.argv[4])
 else:
     fIn=ROOT.TFile.Open("/pnfs/desy.de/cms/tier2/store/user/anmehta/resSrch/XToYYprime_YToQQ_YprimeToQQ_narrow_TuneCP5_PSWeights_13TeV-madgraph-pythia8_RunIIAutumn18/B2BEAC83-CEA3-A241-B0D3-2E1461C38E09.root") 
     job_id = "debug"
@@ -143,9 +148,14 @@ outTree.Branch("FatJet1_deltaR_Y",FatJet1_deltaR_Y,"FatJet1_deltaR_Y[2]/F")
 outTree.Branch("FatJet0_deltaR_YP",FatJet0_deltaR_YP,"FatJet0_deltaR_YP[2]/F")
 outTree.Branch("FatJet1_deltaR_YP",FatJet1_deltaR_YP,"FatJet1_deltaR_YP[2]/F")
 
-
 nevts=0
-for ev in ttree:
+
+if last_event<0:
+    last_event = ttree.GetEntries()
+
+for ievent in range(first_event, last_event):
+    ttree.GetEntry(ievent)
+    ev = ttree
     if nevts > max_events and max_events>0: break
     leptons=[];quarks=[]; bosons=[];
     if ev.nFatJet < 2: continue

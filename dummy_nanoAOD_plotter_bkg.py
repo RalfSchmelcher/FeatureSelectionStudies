@@ -6,11 +6,16 @@ ROOT.gROOT.SetBatch()
 
 
 max_events=-1
+first_event=0
+last_event=-1
 if len(sys.argv)>2:
     input_file=sys.argv[1]
     job_id=sys.argv[2]
     fIn=ROOT.TFile.Open(input_file)
     fName="RunIIAutumn18_{}".format(job_id)
+    if len(sys.argv)>4:
+        first_event=int(sys.argv[3])
+        last_event=int(sys.argv[4])
 else:
     fIn=ROOT.TFile.Open("/pnfs/desy.de/cms/tier2/store/user/anmehta/resSrch/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIAutumn18/F6B34C92-581B-034F-8283-65DC1F68BD7F.root") 
     job_id = "debug"
@@ -130,7 +135,12 @@ outTree.Branch("FatJet1_deltaR_YP",FatJet1_deltaR_YP,"FatJet1_deltaR_YP[2]/F")
 
 
 nevts=0
-for ev in ttree:
+if last_event<0:
+    last_event = ttree.GetEntries()
+
+for ievent in range(first_event, last_event):
+    ttree.GetEntry(ievent)
+    ev = ttree
     if nevts > max_events and max_events>0: break
     nevts+=1
     if ev.nFatJet < 2: continue
